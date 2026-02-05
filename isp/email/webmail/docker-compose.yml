@@ -10,18 +10,27 @@ services:
       MYSQL_DATABASE: meu_webmail
     ports:
       - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
 
   app:
     build: .
     container_name: webmail_php
+    restart: always
     volumes:
       - ./src:/var/www/html
     environment:
-      - MAIL_SERVER=10.0.0.1
+      - MAIL_SERVER=host.docker.internal
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - db
 
   web:
     image: nginx:alpine
     container_name: webmail_nginx
+    restart: always
     ports:
       - "8080:80"
     volumes:
@@ -29,3 +38,6 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - app
+
+volumes:
+  db_data:
